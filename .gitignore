@@ -1,0 +1,11 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Configurações e segredos
+.env
+.env.*
+!.env.example
+credentials/
