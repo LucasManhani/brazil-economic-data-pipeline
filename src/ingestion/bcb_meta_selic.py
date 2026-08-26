@@ -4,7 +4,7 @@ from datetime import date, datetime, timezone
 import requests
 from dotenv import load_dotenv
 from google.api_core.exceptions import PreconditionFailed
-from google.cloud import storage
+from google.cloud import bigquery, storage
 
 
 SERIES_ID = 432
@@ -57,11 +57,38 @@ def upload_raw_to_gcs(
     return True
 
 
+def load_to_bigquery(
+    records: list[dict[str, str]],
+    project_id: str,
+    dataset_id: str,
+) -> int:
+    client = bigquery.Client(project=project_id)
+    table_id = f"{project_id}.{dataset_id}.meta_selic"
+
+    job_config = bigquery.LoadJobConfig(
+        schema=[
+            bigquery.SchemaField("data", "STRING", mode="REQUIRED"),
+            bigquery.SchemaField("valor", "STRING", mode="REQUIRED"),
+        ],
+        write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
+    )
+
+    load_job = client.load_table_from_json(
+        records,
+        table_id,
+        job_config=job_config,
+    )
+    load_job.result()
+
+    return load_job.output_rows or 0
+
+
 if __name__ == "__main__":
     load_dotenv()
 
     project_id = os.environ["GCP_PROJECT_ID"]
     bucket_name = os.environ["GCS_RAW_BUCKET"]
+    dataset_id = os.environ["BQ_DATASET"]
 
     today = date.today()
     period_start = date(today.year, 1, 1)
@@ -92,7 +119,14 @@ if __name__ == "__main__":
 
     records = response.json()
 
+    loaded_rows = load_to_bigquery(
+        records=records,
+        project_id=project_id,
+        dataset_id=dataset_id,
+    )
+
     print(f"Quantidade de registros: {len(records)}")
+    print(f"Registros carregados no BigQuery: {loaded_rows}")
 
     if uploaded:
         print(f"Arquivo enviado: gs://{bucket_name}/{object_name}")
