@@ -9,3 +9,6 @@ __pycache__/
 .env.*
 !.env.example
 credentials/
+
+# Arquivos gerados pelo dbt na raiz
+/logs/

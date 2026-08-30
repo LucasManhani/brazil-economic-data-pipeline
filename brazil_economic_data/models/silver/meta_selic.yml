@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: eng-unfolding-506723-m7
+    schema: bronze
+    tables:
+      - name: meta_selic
+        description: Dados brutos da Meta Selic carregados pela ingestão Python.
+
+models:
+  - name: meta_selic
+    description: Série da Meta Selic com data e valor convertidos para tipos adequados.
+    columns:
+      - name: reference_date
+        description: Data de referência da Meta Selic.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: selic_target_rate
+        description: Meta Selic anual definida pelo Copom.
+        data_tests:
+          - not_null
