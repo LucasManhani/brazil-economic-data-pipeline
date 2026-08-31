@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: selic_rate_changes
+    description: Histórico das mudanças da Meta Selic ao longo do período analisado.
+    columns:
+      - name: effective_date
+        description: Data em que o novo valor da Meta Selic passou a aparecer na série.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: selic_target_rate
+        description: Meta Selic vigente, expressa em percentual ao ano.
+        data_tests:
+          - not_null
+
+      - name: previous_rate
+        description: Meta Selic vigente no dia anterior. É nula no primeiro registro.
+
+      - name: change_percentage_points
+        description: Variação da Meta Selic em pontos percentuais. É nula no primeiro registro.
+
+      - name: change_direction
+        description: Indica se o registro é inicial, aumento ou redução da taxa.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - initial
+                  - increase
+                  - decrease

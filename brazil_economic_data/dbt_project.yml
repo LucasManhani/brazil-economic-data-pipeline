@@ -26,3 +26,7 @@ models:
   brazil_economic_data:
     silver:
       +materialized: table
+
+    gold:
+      +materialized: table
+      +schema: gold
