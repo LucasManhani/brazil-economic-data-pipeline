@@ -91,7 +91,7 @@ if __name__ == "__main__":
     dataset_id = os.environ["BQ_DATASET"]
 
     today = date.today()
-    period_start = date(today.year, 1, 1)
+    period_start = date(2025, 1, 1)
 
     start_date = period_start.strftime("%d/%m/%Y")
     end_date = today.strftime("%d/%m/%Y")
