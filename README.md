@@ -306,7 +306,7 @@ Durante o desenvolvimento, alguns problemas ajudaram a consolidar conceitos impo
 - ausência de dashboard, Terraform e CI/CD;
 - ausência de testes unitários para a ingestão Python.
 
-## Próximas evoluções
+## Possíveis evoluções
 
 - parametrizar e adicionar câmbio/PTAX, crédito ou inadimplência;
 - integrar uma fonte do SIDRA/IBGE;
