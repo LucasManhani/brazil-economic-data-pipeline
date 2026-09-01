@@ -61,26 +61,53 @@ def load_to_bigquery(
     records: list[dict[str, str]],
     project_id: str,
     dataset_id: str,
-) -> int:
+) -> tuple[int, int]:
     client = bigquery.Client(project=project_id)
+
     table_id = f"{project_id}.{dataset_id}.meta_selic"
+    staging_table_id = f"{project_id}.{dataset_id}.meta_selic_staging"
+
+    schema = [
+        bigquery.SchemaField("data", "STRING", mode="REQUIRED"),
+        bigquery.SchemaField("valor", "STRING", mode="REQUIRED"),
+    ]
+
+    table = bigquery.Table(table_id, schema=schema)
+    client.create_table(table, exists_ok=True)
 
     job_config = bigquery.LoadJobConfig(
-        schema=[
-            bigquery.SchemaField("data", "STRING", mode="REQUIRED"),
-            bigquery.SchemaField("valor", "STRING", mode="REQUIRED"),
-        ],
+        schema=schema,
         write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
     )
 
     load_job = client.load_table_from_json(
         records,
-        table_id,
+        staging_table_id,
         job_config=job_config,
     )
     load_job.result()
 
-    return load_job.output_rows or 0
+    merge_query = f"""
+        MERGE `{table_id}` AS target
+        USING `{staging_table_id}` AS source
+        ON target.data = source.data
+        WHEN MATCHED
+            AND target.valor IS DISTINCT FROM source.valor THEN
+            UPDATE SET valor = source.valor
+        WHEN NOT MATCHED THEN
+            INSERT (data, valor)
+            VALUES (source.data, source.valor)
+    """
+
+    merge_job = client.query(merge_query)
+    merge_job.result()
+
+    client.delete_table(staging_table_id, not_found_ok=True)
+
+    staged_rows = load_job.output_rows or 0
+    affected_rows = merge_job.num_dml_affected_rows or 0
+
+    return staged_rows, affected_rows
 
 
 if __name__ == "__main__":
@@ -119,14 +146,18 @@ if __name__ == "__main__":
 
     records = response.json()
 
-    loaded_rows = load_to_bigquery(
+    staged_rows, affected_rows = load_to_bigquery(
         records=records,
         project_id=project_id,
         dataset_id=dataset_id,
     )
 
     print(f"Quantidade de registros: {len(records)}")
-    print(f"Registros carregados no BigQuery: {loaded_rows}")
+    print(f"Registros preparados no staging: {staged_rows}")
+    print(
+        "Registros inseridos ou atualizados no BigQuery: "
+        f"{affected_rows}"
+    )
 
     if uploaded:
         print(f"Arquivo enviado: gs://{bucket_name}/{object_name}")

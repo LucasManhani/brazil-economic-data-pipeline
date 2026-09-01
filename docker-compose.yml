@@ -1,0 +1,32 @@
+services:
+  airflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    command: standalone
+    restart: "no"
+
+    ports:
+      - "8080:8080"
+
+    env_file:
+      - .env
+
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/project/dags
+      GOOGLE_APPLICATION_CREDENTIALS: /home/airflow/.config/gcloud/application_default_credentials.json
+
+    volumes:
+      - airflow_home:/opt/airflow
+
+      - .:/opt/airflow/project
+
+      - type: bind
+        source: ${APPDATA}/gcloud
+        target: /home/airflow/.config/gcloud
+        read_only: true
+
+volumes:
+  airflow_home:

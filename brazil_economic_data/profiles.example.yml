@@ -1,0 +1,11 @@
+brazil_economic_data:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('GCP_PROJECT_ID') }}"
+      dataset: silver
+      location: us-central1
+      threads: 1
+      job_execution_timeout_seconds: 300
