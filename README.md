@@ -315,7 +315,3 @@ Durante o desenvolvimento, alguns problemas ajudaram a consolidar conceitos impo
 - avaliar service account, Secret Manager e autenticação adequada para produção;
 - provisionar recursos com Terraform;
 - adicionar CI para validação Python e dbt.
-
-## Autor
-
-Desenvolvido por [Lucas Manhani](https://github.com/LucasManhani) como projeto de aprendizado e portfólio em engenharia de dados na nuvem.
